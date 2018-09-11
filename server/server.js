@@ -49,6 +49,29 @@ app.get('/todos/:id', (req, res) => { // URL Parameters: put a colon (:) before 
 
 });
 
+app.delete('/todos/:id', (req,res) => {
+  //get the id
+  var id = req.params.id;
+
+  if(!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  ToDo.findByIdAndRemove(id).then((todo) => {
+    if(!todo) {
+      res.status(404).send();
+    }
+    res.status(200);
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  });
+
+  //validate id, if not return 404
+
+  //remove todo by id. success->if no doc received send 404, if found send 200 & error-> 404
+});
+
 app.listen(port, () => {
   console.log(`port ${port}.`);
 });
