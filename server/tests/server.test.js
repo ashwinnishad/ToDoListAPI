@@ -10,7 +10,9 @@ const todos = [{
     text: 'first todo test'
 }, {
   _id: new ObjectID(),
-  text: 'second todo test'
+  text: 'second todo test',
+  completed: true,
+  completedAt: 12342
 }]
 
 
@@ -138,4 +140,53 @@ describe('DELETE /todos/:id', () => {
     .expect(404)
     .end(done);
   });
-})
+});
+
+describe('PATCH /todos/:id', () => {
+  it('should update the todo', (done) => {
+    // get id, update tex, set completed=true, make assertion (expect) that text changed, completed is true, completedAt is a number
+    var id = todos[1]._id.toHexString();
+    request(app)
+    .patch(`/todos/${id}`)
+    .send({
+      text: "second todo test updated",
+      completed: true
+    })
+    .expect(200)
+    .end((err, res) => {
+      if(err) {
+        return done(err);
+      }
+      ToDo.findById(id).then((todo) => {
+          expect(todo.text).toBe("second todo test updated");
+          expect(todo.completed).toBe(true);
+          expect(todo.completedAt).toBeA(number);
+          done();
+      }).catch((e) => done());
+
+    });
+  });
+
+  it('should clear completedAt when todo is not completed', (done) => {
+    //update text, set completed false,expecrt 200, expect(text changed and completed is false and completedAt is null use toBeNull )
+    var id  = todos[1]._id.toHexString();
+    request(app)
+    .patch(`/todos/${id}`)
+    .send({
+      text: "updating with a false value for completed",
+      completed: false
+    })
+    .expect(200)
+    .end((err, res) => {
+      if(err) {
+        return done(err);
+      }
+      ToDo.findById(id).then((todo) => {
+          expect(todo.text).toBe("updating with a false value for completed");
+          expect(todo.completed).toBe(false);
+          expect(todo.completedAt).toBeNull();
+          done();
+    }).catch((e) => done());
+  });
+});
+});
