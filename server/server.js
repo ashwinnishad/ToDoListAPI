@@ -104,7 +104,21 @@ app.patch('/todos/:id', (req,res) => {
   }).catch((e) => {
     res.status(400).send();
   })
-})
+});
+
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var user = new User(body);
+
+  user.save().then(() => {
+    return user.generateAuthToken();
+  }).then((token) => { // the token returned from users.js
+    res.header('x-auth', token).send(user); // x-auth is a custom header we're creating. not necessary that HTML will recognize it
+  }).catch((e) => {
+    res.status(400).send(e);
+  });
+
+});
 
 
 app.listen(port, () => {
