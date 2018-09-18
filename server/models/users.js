@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
   email: {
@@ -75,6 +76,26 @@ UserSchema.statics.findByToken = function(token) {
     'tokens.access': 'auth'
   });
 };    //everything you add on to statics, turns into a model method instead of an instance method
+
+
+UserSchema.pre('save', function(next) { //middleware method to make sure password matches before saving a note
+  var user = this;
+  if(user.isModified('password'))
+  {
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+
+  } // if modified, returns true. vice versa
+  else {
+    next();
+  }
+
+
+});
 
 var User = mongoose.model('User', UserSchema  );
 
