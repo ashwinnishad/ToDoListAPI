@@ -56,6 +56,17 @@ UserSchema.methods.generateAuthToken = function() { //arrow functions do not bin
   });
 };
 
+UserSchema.methods.removeToken = function(token) {
+  var user = this;
+  return user.update({
+    $pull: {
+    tokens: {
+      token: token
+    }
+  }
+}); // pulls an intem from an array that matches a criteria
+};
+
 UserSchema.statics.findByToken = function(token) {
   var User = this; //model methods gets called with the model
   var decoded;
