@@ -16,9 +16,10 @@ const port = process.env.PORT;
 
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res)=> {
+app.post('/todos', authenticate, (req, res)=> { //
   var todo = new ToDo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   todo.save().then((doc) => {
@@ -28,21 +29,24 @@ app.post('/todos', (req, res)=> {
   })
 });
 
-app.get('/todos', (req,res) => {
-  ToDo.find().then((todos) => {
+app.get('/todos', authenticate, (req,res) => { // updated, to-dos by user
+  ToDo.find({_creator: req.user._id}).then((todos) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
   });
 });
 
-app.get('/todos/:id', (req, res) => { // URL Parameters: put a colon (:) before a specific attribute in a document. in our example, we use ID.
+app.get('/todos/:id', authenticate, (req, res) => { // URL Parameters: put a colon (:) before a specific attribute in a document. in our example, we use ID.
   var id = req.params.id;
 
   if(!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-  ToDo.findById(id).then((todo) => {
+  ToDo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if(!todo) {
       res.status(404).send();
     }
@@ -53,7 +57,7 @@ app.get('/todos/:id', (req, res) => { // URL Parameters: put a colon (:) before 
 
 });
 
-app.delete('/todos/:id', (req,res) => {
+app.delete('/todos/:id', authenticate, (req,res) => {
   //get the id
   var id = req.params.id;
 
@@ -61,7 +65,10 @@ app.delete('/todos/:id', (req,res) => {
     return res.status(404).send();
   }
 
-  ToDo.findByIdAndRemove(id).then((todo) => {
+  ToDo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if(!todo) {
       res.status(404).send();
     }
@@ -76,7 +83,7 @@ app.delete('/todos/:id', (req,res) => {
   //remove todo by id. success->if no doc received send 404, if found send 200 & error-> 404
 });
 
-app.patch('/todos/:id', (req,res) => {
+app.patch('/todos/:id', authenticate, (req,res) => {
   var id = req.params.id;
   var body = _.pick(req.body, ['text', 'completed']);
 
@@ -92,7 +99,8 @@ app.patch('/todos/:id', (req,res) => {
     body.completedAt = null;
   }
 
-  ToDo.findByIdAndUpdate(id, {
+  ToDo.findOneAndUpdate({_id: id,
+  _creator: req.user._id}, {
     $set: body
   }, {
     new: true

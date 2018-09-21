@@ -14,6 +14,10 @@ var ToDo = mongoose.model('ToDo', { // model is a blueprint/schema. instance of 
   completedAt: {
     type: Number,
     default: null
+  },
+  _creator: {
+    require: true,
+    type: mongoose.Schema.Types.ObjectId
   }
 });
 
