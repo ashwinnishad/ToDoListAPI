@@ -44,7 +44,7 @@ UserSchema.methods.toJSON = function() {
 UserSchema.methods.generateAuthToken = function() { //arrow functions do not bind with 'this' keyword. so we're using a normal function
   var user = this;
   var access = 'auth';
-  var token = jwt.sign({_id: user._id.toHexString(), access}, '12344').toString();
+  var token = jwt.sign({_id: user._id.toHexString(), access},  process.env.JWT_SECRET).toString();
 
   user.tokens = user.tokens.concat([{
     access,
@@ -72,7 +72,7 @@ UserSchema.statics.findByToken = function(token) {
   var decoded;
 
   try {
-    decoded = jwt.verify(token, '12344');
+    decoded = jwt.verify(token,  process.env.JWT_SECRET);
   }
   catch (e) {
       // return new Promise((resolve, reject) => {
